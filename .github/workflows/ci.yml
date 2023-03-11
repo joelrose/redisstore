@@ -13,8 +13,7 @@ jobs:
         image: ${{ matrix.redis-image }}
         options: >-
           --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
+          --health-interval 3s 
           --health-retries 5
         ports:
           - 6379:6379
