@@ -2,7 +2,7 @@
 // Source: store.go
 
 // Package redisstore is a generated GoMock package.
-package redisstore
+package mocks
 
 import (
 	context "context"
