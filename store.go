@@ -12,7 +12,7 @@ import (
 	"github.com/rs/xid"
 )
 
-type RedisClient interface {
+type Client interface {
 	// Get returns the value for a given key.
 	Get(ctx context.Context, key string) ([]byte, error)
 	// Set sets the value for a given key.
@@ -25,7 +25,7 @@ type RedisClient interface {
 type KeyGenFunc func() string
 
 type Store struct {
-	client     RedisClient
+	client     Client
 	codecs     []securecookie.Codec
 	serializer SessionSerializer
 	options    *sessions.Options
@@ -73,7 +73,7 @@ const (
 	defaultKeyPrefix = "session_"
 )
 
-func New(client RedisClient, keyPairs [][]byte, options ...Options) *Store {
+func New(client Client, keyPairs [][]byte, options ...Options) *Store {
 	s := &Store{
 		client:     client,
 		codecs:     securecookie.CodecsFromPairs(keyPairs...),

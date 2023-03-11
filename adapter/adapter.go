@@ -13,7 +13,7 @@ type GoRedisAdapter struct {
 	redis.UniversalClient
 }
 
-var _ redisstore.RedisClient = (*GoRedisAdapter)(nil)
+var _ redisstore.Client = (*GoRedisAdapter)(nil)
 
 func WithGoRedis(client redis.UniversalClient) *GoRedisAdapter {
 	return &GoRedisAdapter{client}
