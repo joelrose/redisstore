@@ -8,13 +8,15 @@ import (
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/joelrose/redisstore/mocks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestStore_Save(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	client := NewMockRedisClient(mockCtrl)
+	client := mocks.NewMockRedisClient(mockCtrl)
 
 	client.EXPECT().Set(gomock.Any(), "prefix_key", gomock.Any(), gomock.Any()).Return(nil)
 
@@ -56,7 +58,7 @@ func TestStore_Delete(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
-	client := NewMockRedisClient(mockCtrl)
+	client := mocks.NewMockRedisClient(mockCtrl)
 
 	clientSet := client.EXPECT().Set(
 		gomock.Any(),
@@ -108,4 +110,19 @@ func TestStore_Delete(t *testing.T) {
 	if err := session.Save(req, w); err != nil {
 		t.Fatal("failed to delete: ", err)
 	}
+}
+
+func TestDefaultKeyGenerator(t *testing.T) {
+	t.Run("generates a unique key", func(t *testing.T) {
+		key1 := defaultKeyGenerator()
+		key2 := defaultKeyGenerator()
+
+		assert.NotEqual(t, key1, key2)
+	})
+
+	t.Run("generates a key of the correct length", func(t *testing.T) {
+		key := defaultKeyGenerator()
+
+		assert.Equal(t, 20, len(key))
+	})
 }
