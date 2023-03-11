@@ -67,8 +67,7 @@ func (s GobSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	enc := gob.NewEncoder(buf)
 
-	err := enc.Encode(ss.Values)
-	if err != nil {
+	if err := enc.Encode(ss.Values); err != nil {
 		return nil, fmt.Errorf("gob: encoding session values: %v", err)
 	}
 
@@ -79,8 +78,7 @@ func (s GobSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 func (s GobSerializer) Deserialize(d []byte, ss *sessions.Session) error {
 	dec := gob.NewDecoder(bytes.NewBuffer(d))
 
-	err := dec.Decode(&ss.Values)
-	if err != nil {
+	if err := dec.Decode(&ss.Values); err != nil {
 		return fmt.Errorf("gob: decoding session values: %v", err)
 	}
 
