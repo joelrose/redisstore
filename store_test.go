@@ -38,6 +38,22 @@ func TestOptions(t *testing.T) {
 		WithKeyGenerator(func() string { return "key" })(store)
 		assert.Equal(t, "key", store.keyGen())
 	})
+
+	t.Run("WithSessionOptions", func(t *testing.T) {
+		options := sessions.Options{
+			Path:     "/path",
+			MaxAge:   0,
+			HttpOnly: true,
+			Domain:   "domain",
+			Secure:   true,
+			SameSite: http.SameSiteStrictMode,
+		}
+
+		store := &Store{}
+		WithSessionOptions(options)(store)
+
+		assert.Equal(t, options, *store.options)
+	})
 }
 
 func TestStoreNew(t *testing.T) {
