@@ -33,6 +33,8 @@ type Store struct {
 	keyPrefix  string
 }
 
+var _ sessions.Store = (*Store)(nil)
+
 type Options func(s *Store)
 
 // WithKeyPrefix sets the key prefix used in redis keys.
@@ -131,7 +133,7 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 	}
 
 	if err := securecookie.DecodeMulti(name, c.Value, &session.ID, s.codecs...); err != nil {
-		return nil, fmt.Errorf("redisstore(new): decoding cookie value: %v", err)
+		return session, fmt.Errorf("redisstore(new): decoding cookie value: %v", err)
 	}
 
 	if err := s.load(r.Context(), session); err == nil {
