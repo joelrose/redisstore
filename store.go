@@ -15,12 +15,12 @@ type RedisClient interface {
 	// Get returns the value for a given key.
 	Get(ctx context.Context, key string) ([]byte, error)
 	// Set sets the value for a given key.
-	Set(ctx context.Context, key string, value interface{}, time time.Duration) error
+	Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error
 	// Del deletes a given key.
 	Del(ctx context.Context, key string) error
 }
 
-// KeyGenFunc defines a function used by store to generate the session key
+// KeyGenFunc defines a function used by store to generate the session key.
 type KeyGenFunc func() string
 
 type Store struct {
@@ -77,7 +77,7 @@ func New(client RedisClient, keyPairs [][]byte, options ...Options) *Store {
 		keyPrefix:  defaultKeyPrefix,
 		keyGen:     defaultKeyGenerator,
 		serializer: GobSerializer{},
-		options: &sessions.Options{
+		options: &sessions.Options{ //nolint: exhaustruct
 			Path:   defaultPath,
 			MaxAge: defaultMaxAge,
 		},
@@ -112,7 +112,7 @@ func (s *Store) MaxAge(age int) {
 //
 // ref: https://github.com/gorilla/sessions/blob/0e1d1d7c382124033b710ef1ef0993327195ed40/store.go#L178
 func (s *Store) Get(r *http.Request, name string) (*sessions.Session, error) {
-	return sessions.GetRegistry(r).Get(s, name)
+	return sessions.GetRegistry(r).Get(s, name) //nolint: wrapcheck
 }
 
 // New returns a session for the given name without adding it to the registry.
@@ -124,9 +124,9 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 	session.Options = &options
 	session.IsNew = true
 
-	c, err := r.Cookie(name)
-	if err != nil {
-		return session, nil
+	c, errCookie := r.Cookie(name)
+	if errCookie != nil {
+		return session, nil //nolint: nilerr
 	}
 
 	if err := securecookie.DecodeMulti(name, c.Value, &session.ID, s.codecs...); err != nil {
@@ -142,11 +142,12 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 
 // Save adds a single session to the response.
 //
-// If the Options.MaxAge of the session is <= 0
+// If the Options.MaxAge of the session is <= 0, the session is deleted.
 func (s *Store) Save(r *http.Request, w http.ResponseWriter, session *sessions.Session) error {
 	// Delete session if max-age is <= 0
 	if session.Options.MaxAge <= 0 {
-		if err := s.delete(context.TODO(), session); err != nil {
+		// TODO(joelrose): find a better solution, not sure if we should use the request context here
+		if err := s.delete(r.Context(), session); err != nil {
 			return fmt.Errorf("redisstore(save): deleting session: %v", err)
 		}
 		http.SetCookie(w, sessions.NewCookie(session.Name(), "", session.Options))
@@ -189,17 +190,20 @@ func (s *Store) save(ctx context.Context, session *sessions.Session) error {
 }
 
 // load reads the session from redis.
-// returns true if there is a sessoin data in DB
 func (s *Store) load(ctx context.Context, session *sessions.Session) error {
 	val, err := s.client.Get(ctx, s.keyPrefix+session.ID)
 	if err != nil {
 		return fmt.Errorf("getting session: %v", err)
 	}
 
-	return s.serializer.Deserialize(val, session)
+	if err := s.serializer.Deserialize(val, session); err != nil {
+		return fmt.Errorf("deserializing session: %v", err)
+	}
+
+	return nil
 }
 
-// delete removes keys from redis if MaxAge<0
+// delete removes session from redis.
 func (s *Store) delete(ctx context.Context, session *sessions.Session) error {
 	if err := s.client.Del(ctx, s.keyPrefix+session.ID); err != nil {
 		return fmt.Errorf("deleting session: %v", err)
@@ -208,6 +212,7 @@ func (s *Store) delete(ctx context.Context, session *sessions.Session) error {
 	return nil
 }
 
+// defaultKeyGenerator generates a new session ID.
 func defaultKeyGenerator() string {
 	return xid.New().String()
 }
