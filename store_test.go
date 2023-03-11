@@ -8,11 +8,79 @@ import (
 	"time"
 
 	gomock "github.com/golang/mock/gomock"
+	"github.com/gorilla/securecookie"
+	"github.com/gorilla/sessions"
 	"github.com/joelrose/redisstore/mocks"
 	"github.com/stretchr/testify/assert"
 )
 
-func TestStore_Save(t *testing.T) {
+func TestOptions(t *testing.T) {
+	t.Run("WithKeyPrefix", func(t *testing.T) {
+		store := &Store{}
+		WithKeyPrefix("prefix_")(store)
+		assert.Equal(t, "prefix_", store.keyPrefix)
+	})
+
+	t.Run("WithSerializer_Gob", func(t *testing.T) {
+		store := &Store{}
+		WithSerializer(GobSerializer{})(store)
+		assert.Equal(t, GobSerializer{}, store.serializer)
+	})
+
+	t.Run("WithSerializer_JSON", func(t *testing.T) {
+		store := &Store{}
+		WithSerializer(JSONSerializer{})(store)
+		assert.Equal(t, JSONSerializer{}, store.serializer)
+	})
+
+	t.Run("WithKeyGenerator", func(t *testing.T) {
+		store := &Store{}
+		WithKeyGenerator(func() string { return "key" })(store)
+		assert.Equal(t, "key", store.keyGen())
+	})
+}
+
+func TestStoreNew(t *testing.T) {
+	mockCtrl := gomock.NewController(t)
+	defer mockCtrl.Finish()
+
+	client := mocks.NewMockRedisClient(mockCtrl)
+
+	store := New(client, [][]byte{[]byte("hash"), []byte("block")})
+	assert.NotNil(t, store)
+}
+
+func TestStoreSetMaxAge(t *testing.T) {
+	store := Store{
+		options: &sessions.Options{
+			MaxAge: 0,
+		},
+		codecs: securecookie.CodecsFromPairs([]byte("hash"), []byte("block")),
+	}
+
+	const maxAge = 10
+	store.SetMaxAge(maxAge)
+	assert.Equal(t, maxAge, store.options.MaxAge)
+}
+
+func TestStoreSetOptions(t *testing.T) {
+	store := Store{}
+
+	options := sessions.Options{
+		Path:     "/path",
+		MaxAge:   0,
+		HttpOnly: true,
+		Domain:   "domain",
+		Secure:   true,
+		SameSite: http.SameSiteStrictMode,
+	}
+
+	store.SetOptions(options)
+
+	assert.Equal(t, options, *store.options)
+}
+
+func TestStoreSave(t *testing.T) {
 	mockCtrl := gomock.NewController(t)
 	defer mockCtrl.Finish()
 
