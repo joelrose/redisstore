@@ -10,24 +10,24 @@ import (
 )
 
 type GoRedisAdapter struct {
-	*redis.Client
+	redis.UniversalClient
 }
 
 var _ redisstore.RedisClient = (*GoRedisAdapter)(nil)
 
-func WithGoRedis(client *redis.Client) *GoRedisAdapter {
+func WithGoRedis(client redis.UniversalClient) *GoRedisAdapter {
 	return &GoRedisAdapter{client}
 }
 
 func (a *GoRedisAdapter) Get(ctx context.Context, key string) ([]byte, error) {
-	val, err := a.Client.Get(ctx, key).Result()
+	val, err := a.UniversalClient.Get(ctx, key).Result()
 	return []byte(val), err
 }
 
 func (a *GoRedisAdapter) Set(ctx context.Context, key string, value interface{}, expiration time.Duration) error {
-	return a.Client.Set(ctx, key, value, 0).Err()
+	return a.UniversalClient.Set(ctx, key, value, 0).Err()
 }
 
 func (a *GoRedisAdapter) Del(ctx context.Context, key string) error {
-	return a.Client.Del(ctx, key).Err()
+	return a.UniversalClient.Del(ctx, key).Err()
 }
