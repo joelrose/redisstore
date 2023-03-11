@@ -3,6 +3,7 @@ module github.com/joelrose/redisstore
 go 1.20
 
 require (
+	github.com/golang/mock v1.6.0
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/redis/go-redis/v9 v9.0.2

@@ -6,6 +6,10 @@ lint: ## Run linters
 test: ## Run tests
 	go test ./...
 
+.PHONY: generate
+generate: ## Generate code
+	go generate ./...
+
 .DEFAULT_GOAL := help
 
 .PHONY: help

@@ -1,3 +1,4 @@
+//go:generate mockgen -source=store.go -destination=store_mock.go -package=redisstore_test
 package redisstore
 
 import (
