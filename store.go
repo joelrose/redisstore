@@ -33,6 +33,8 @@ type Store struct {
 	keyPrefix  string
 }
 
+var _ sessions.Store = (*Store)(nil)
+
 type Options func(s *Store)
 
 // WithKeyPrefix sets the key prefix used in redis keys.
