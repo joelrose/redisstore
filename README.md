@@ -1,6 +1,7 @@
 # redisstore
 
 [![Go Report Card](https://goreportcard.com/badge/github.com/joelrose/redisstore)](https://goreportcard.com/report/github.com/joelrose/redisstore)
+[![codecov](https://codecov.io/gh/joelrose/redisstore/branch/main/graph/badge.svg?token=S7OK5EE8L3)](https://codecov.io/gh/joelrose/redisstore)
 [![Tests](https://github.com/joelrose/redisstore/actions/workflows/ci.yml/badge.svg)](https://github.com/joelrose/redisstore/actions/workflows/ci.yaml)
 [![GoDoc](https://godoc.org/github.com/joelrose/redisstore?status.svg)](https://godoc.org/github.com/joelrose/redisstore)
 
