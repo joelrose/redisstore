@@ -9,7 +9,7 @@ import (
 	"github.com/gorilla/sessions"
 )
 
-// SessionSerializer provides an interface for alternative serializers
+// SessionSerializer provides an interface for alternative serializers.
 type SessionSerializer interface {
 	Deserialize(d []byte, ss *sessions.Session) error
 	Serialize(ss *sessions.Session) ([]byte, error)
@@ -30,32 +30,39 @@ func (s JSONSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 		}
 		m[ks] = v
 	}
-	return json.Marshal(m)
+
+	contents, err := json.Marshal(m)
+	if err != nil {
+		return nil, fmt.Errorf("json: serializing session values: %v", err)
+	}
+
+	return contents, nil
 }
 
-// Deserialize back to map[string]interface{}
+// Deserialize back to map[string]interface{}.
 func (s JSONSerializer) Deserialize(d []byte, ss *sessions.Session) error {
 	if ss.Values == nil {
 		ss.Values = make(map[interface{}]interface{})
 	}
 
 	m := make(map[string]interface{})
-	err := json.Unmarshal(d, &m)
-	if err != nil {
+	if err := json.Unmarshal(d, &m); err != nil {
 		return fmt.Errorf("json: deserializing session values: %v", err)
 	}
+
 	for k, v := range m {
 		ss.Values[k] = v
 	}
+
 	return nil
 }
 
-// GobSerializer uses the gob package to encode the session map
+// GobSerializer uses the gob package to encode the session map.
 type GobSerializer struct{}
 
 var _ SessionSerializer = (*GobSerializer)(nil)
 
-// Serialize using gob
+// Serialize using gob.
 func (s GobSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 	buf := new(bytes.Buffer)
 	enc := gob.NewEncoder(buf)
@@ -68,7 +75,7 @@ func (s GobSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 	return buf.Bytes(), nil
 }
 
-// Deserialize back to map[interface{}]interface{}
+// Deserialize back to map[interface{}]interface{}.
 func (s GobSerializer) Deserialize(d []byte, ss *sessions.Session) error {
 	dec := gob.NewDecoder(bytes.NewBuffer(d))
 
