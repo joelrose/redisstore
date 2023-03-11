@@ -1,0 +1,46 @@
+---
+linters:
+  enable-all: true
+  disable:
+    - cyclop
+    - dogsled
+    - dupl
+    - errname
+    - errorlint
+    - exhaustivestruct
+    - funlen
+    - gochecknoglobals
+    - gocognit
+    - goconst
+    - godox
+    - goerr113
+    - gofumpt
+    - ireturn
+    - maintidx
+    - nlreturn
+    - nolintlint
+    - paralleltest
+    - prealloc
+    - predeclared
+    - testpackage
+    - varnamelen
+    - wsl
+    # deprecated
+    - golint
+    - interfacer
+    - maligned
+    - scopelint
+
+linters-settings:
+  tagliatelle:
+    case:
+      use-field-name: false
+      rules:
+        json: snake
+  wrapcheck:
+    ignoreSigs:
+      - .JSON(
+      - .Errorf(
+  lll:
+    line-length: 250 
+    tab-width: 4
