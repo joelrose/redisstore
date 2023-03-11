@@ -90,17 +90,17 @@ func New(client RedisClient, keyPairs [][]byte, options ...Options) *Store {
 		option(s)
 	}
 
-	s.MaxAge(s.options.MaxAge)
+	s.SetMaxAge(s.options.MaxAge)
 
 	return s
 }
 
-// MaxAge sets the maximum age for the store and the underlying cookie
+// SetMaxAge sets the maximum age for the store and the underlying cookie
 // implementation. Individual sessions can be deleted by setting Options.MaxAge
 // = -1 for that session.
 //
 // ref: https://github.com/gorilla/sessions/blob/0e1d1d7c382124033b710ef1ef0993327195ed40/store.go#L243
-func (s *Store) MaxAge(age int) {
+func (s *Store) SetMaxAge(age int) {
 	s.options.MaxAge = age
 
 	// Set the maxAge for each securecookie instance.
@@ -109,6 +109,11 @@ func (s *Store) MaxAge(age int) {
 			sc.MaxAge(age)
 		}
 	}
+}
+
+// SetOptions sets the options for the store.
+func (s *Store) SetOptions(options sessions.Options) {
+	s.options = &options
 }
 
 // Get returns a session for the given name after adding it to the registry.
