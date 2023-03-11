@@ -31,6 +31,12 @@ linters:
     - maligned
     - scopelint
 
+issues:
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - exhaustruct
+
 linters-settings:
   tagliatelle:
     case:

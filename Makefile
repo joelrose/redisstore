@@ -1,6 +1,10 @@
 .PHONY: lint
-lint: ## Lint the application
+lint: ## Run linters
 	golangci-lint run
+
+.PHONY: test
+test: ## Run tests
+	go test ./...
 
 .DEFAULT_GOAL := help
 
