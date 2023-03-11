@@ -6,7 +6,19 @@ jobs:
   tests:
     strategy:
       matrix:
+        redis-image: ["6.2.11-alpine", "redis:7.0.9-alpine"]
         version: ["1.18", "1.19", "1.20"]
+    services:
+      redis:
+        image: ${{ matrix.redis-image }}
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 6379:6379
+
     name: Run Tests
     runs-on: ubuntu-22.04
     steps:
