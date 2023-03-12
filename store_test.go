@@ -52,7 +52,7 @@ func TestOptions(t *testing.T) {
 		store := &Store{}
 		WithSessionOptions(options)(store)
 
-		assert.Equal(t, options, *store.options)
+		assert.Equal(t, options, *store.Options)
 	})
 }
 
@@ -68,15 +68,15 @@ func TestStoreNew(t *testing.T) {
 
 func TestStoreSetMaxAge(t *testing.T) {
 	store := Store{
-		options: &sessions.Options{
+		Options: &sessions.Options{
 			MaxAge: 0,
 		},
-		codecs: securecookie.CodecsFromPairs([]byte("hash"), []byte("block")),
+		Codecs: securecookie.CodecsFromPairs([]byte("hash"), []byte("block")),
 	}
 
 	const maxAge = 10
 	store.SetMaxAge(maxAge)
-	assert.Equal(t, maxAge, store.options.MaxAge)
+	assert.Equal(t, maxAge, store.Options.MaxAge)
 }
 
 func TestStoreSetOptions(t *testing.T) {
@@ -93,7 +93,7 @@ func TestStoreSetOptions(t *testing.T) {
 
 	store.SetOptions(options)
 
-	assert.Equal(t, options, *store.options)
+	assert.Equal(t, options, *store.Options)
 }
 
 func TestStoreSave(t *testing.T) {

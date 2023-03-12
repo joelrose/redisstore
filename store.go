@@ -25,10 +25,10 @@ type Client interface {
 type KeyGenFunc func() string
 
 type Store struct {
+	Options    *sessions.Options
+	Codecs     []securecookie.Codec
 	client     Client
-	codecs     []securecookie.Codec
 	serializer SessionSerializer
-	options    *sessions.Options
 	keyGen     KeyGenFunc
 	keyPrefix  string
 }
@@ -63,7 +63,7 @@ func WithKeyGenerator(keyGen KeyGenFunc) Options {
 // WithSessionOptions sets the session options.
 func WithSessionOptions(options sessions.Options) Options {
 	return func(s *Store) {
-		s.options = &options
+		s.Options = &options
 	}
 }
 
@@ -75,22 +75,22 @@ const (
 
 func New(client Client, keyPairs [][]byte, options ...Options) *Store {
 	s := &Store{
-		client:     client,
-		codecs:     securecookie.CodecsFromPairs(keyPairs...),
-		keyPrefix:  defaultKeyPrefix,
-		keyGen:     defaultKeyGenerator,
-		serializer: GobSerializer{},
-		options: &sessions.Options{ //nolint: exhaustruct
+		Codecs: securecookie.CodecsFromPairs(keyPairs...),
+		Options: &sessions.Options{ //nolint: exhaustruct
 			Path:   defaultPath,
 			MaxAge: defaultMaxAge,
 		},
+		client:     client,
+		keyPrefix:  defaultKeyPrefix,
+		keyGen:     defaultKeyGenerator,
+		serializer: GobSerializer{},
 	}
 
 	for _, option := range options {
 		option(s)
 	}
 
-	s.SetMaxAge(s.options.MaxAge)
+	s.SetMaxAge(s.Options.MaxAge)
 
 	return s
 }
@@ -101,10 +101,10 @@ func New(client Client, keyPairs [][]byte, options ...Options) *Store {
 //
 // ref: https://github.com/gorilla/sessions/blob/0e1d1d7c382124033b710ef1ef0993327195ed40/store.go#L243
 func (s *Store) SetMaxAge(age int) {
-	s.options.MaxAge = age
+	s.Options.MaxAge = age
 
 	// Set the maxAge for each securecookie instance.
-	for _, codec := range s.codecs {
+	for _, codec := range s.Codecs {
 		if sc, ok := codec.(*securecookie.SecureCookie); ok {
 			sc.MaxAge(age)
 		}
@@ -113,7 +113,7 @@ func (s *Store) SetMaxAge(age int) {
 
 // SetOptions sets the options for the store.
 func (s *Store) SetOptions(options sessions.Options) {
-	s.options = &options
+	s.Options = &options
 }
 
 // Get returns a session for the given name after adding it to the registry.
@@ -128,7 +128,7 @@ func (s *Store) Get(r *http.Request, name string) (*sessions.Session, error) {
 // ref: https://github.com/gorilla/sessions/blob/0e1d1d7c382124033b710ef1ef0993327195ed40/store.go#L185
 func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 	session := sessions.NewSession(s, name)
-	options := *s.options
+	options := *s.Options
 	session.Options = &options
 	session.IsNew = true
 
@@ -137,7 +137,7 @@ func (s *Store) New(r *http.Request, name string) (*sessions.Session, error) {
 		return session, nil //nolint: nilerr
 	}
 
-	if err := securecookie.DecodeMulti(name, c.Value, &session.ID, s.codecs...); err != nil {
+	if err := securecookie.DecodeMulti(name, c.Value, &session.ID, s.Codecs...); err != nil {
 		return session, fmt.Errorf("redisstore(new): decoding cookie value: %v", err)
 	}
 
@@ -171,7 +171,7 @@ func (s *Store) Save(r *http.Request, w http.ResponseWriter, session *sessions.S
 		return fmt.Errorf("redisstore(save): saving session: %v", err)
 	}
 
-	encoded, err := securecookie.EncodeMulti(session.Name(), session.ID, s.codecs...)
+	encoded, err := securecookie.EncodeMulti(session.Name(), session.ID, s.Codecs...)
 	if err != nil {
 		return fmt.Errorf("redisstore(save): encoding cookie value: %v", err)
 	}
