@@ -41,13 +41,13 @@ func (s JSONSerializer) Serialize(ss *sessions.Session) ([]byte, error) {
 
 // Deserialize back to map[string]interface{}.
 func (s JSONSerializer) Deserialize(d []byte, ss *sessions.Session) error {
-	if ss.Values == nil {
-		ss.Values = make(map[interface{}]interface{})
-	}
-
 	m := make(map[string]interface{})
 	if err := json.Unmarshal(d, &m); err != nil {
 		return fmt.Errorf("json: deserializing session values: %v", err)
+	}
+
+	if ss.Values == nil {
+		ss.Values = make(map[interface{}]interface{}, len(m))
 	}
 
 	for k, v := range m {
