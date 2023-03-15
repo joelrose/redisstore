@@ -71,7 +71,7 @@ func (a *RedigoAdapter) Set(ctx context.Context, key string, value interface{}, 
 	}
 	defer conn.Close()
 
-	_, err = redigo.DoContext(conn, ctx, "SET", key, value)
+	_, err = redigo.DoContext(conn, ctx, "SET", key, value, "EX", int(expiration.Seconds()))
 	if err != nil {
 		return fmt.Errorf("setting value in redis: %v", err)
 	}
