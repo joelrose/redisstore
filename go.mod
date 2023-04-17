@@ -8,7 +8,7 @@ require (
 	github.com/gorilla/securecookie v1.1.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/redis/go-redis/v9 v9.0.2
-	github.com/rs/xid v1.4.0
+	github.com/rs/xid v1.5.0
 	github.com/stretchr/testify v1.8.2
 )
 
